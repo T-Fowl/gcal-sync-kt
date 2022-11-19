@@ -1,0 +1,1 @@
+Simple library used in other projects of mine for synchronising a sequence of events to google calendar
