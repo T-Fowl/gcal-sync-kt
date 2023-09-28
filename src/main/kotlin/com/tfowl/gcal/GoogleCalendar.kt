@@ -34,10 +34,12 @@ object GoogleCalendar {
         val flow = GoogleAuthorizationCodeFlow.Builder(config.httpTransport, config.jsonFactory, secrets, config.scopes)
             .setDataStoreFactory(config.dataStoreFactory).setAccessType("offline").build()
 
-        val receiver = if(config.headless) {
+        val receiver = if (config.headless) {
+
             object : AbstractPromptReceiver() {
-                // TODO: Deprecated
-                override fun getRedirectUri(): String = "redirect_uri=urn:ietf:wg:oauth:2.0:oob"
+                override fun getRedirectUri(): String {
+                    return "redirect_uri=urn:ietf:wg:oauth:2.0:oob"
+                }
             }
         } else {
             LocalServerReceiver.Builder().setPort(8888).build()
