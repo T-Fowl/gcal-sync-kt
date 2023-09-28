@@ -12,10 +12,10 @@ import com.google.api.client.json.JsonFactory
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.client.util.store.DataStoreFactory
 import com.google.api.services.calendar.Calendar
-import java.io.File
+import java.io.Reader
 
 data class GoogleApiServiceConfig(
-    val secrets: File,
+    val secretsProvider: () -> Reader,
     val applicationName: String,
     val scopes: List<String>,
     val headless: Boolean = false,
@@ -28,7 +28,7 @@ object GoogleCalendar {
     private fun getCredentials(
         config: GoogleApiServiceConfig,
     ): Credential {
-        val input = config.secrets.reader()
+        val input = config.secretsProvider()
         val secrets = GoogleClientSecrets.load(config.jsonFactory, input)
 
         val flow = GoogleAuthorizationCodeFlow.Builder(config.httpTransport, config.jsonFactory, secrets, config.scopes)
