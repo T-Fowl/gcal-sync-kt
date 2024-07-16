@@ -2,7 +2,7 @@ package com.tfowl.gcal
 
 import com.google.api.services.calendar.Calendar
 import com.google.api.services.calendar.model.Event
-import com.sun.org.slf4j.internal.LoggerFactory
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.ZoneId
 
