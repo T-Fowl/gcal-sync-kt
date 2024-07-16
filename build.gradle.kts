@@ -20,6 +20,8 @@ dependencies {
 
     api("com.michael-bull.kotlin-result:kotlin-result:2.0.0")
 
+    implementation("org.slf4j:slf4j-api:2.0.12")
+
     testImplementation(kotlin("test"))
 }
 

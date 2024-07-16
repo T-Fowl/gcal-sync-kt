@@ -2,6 +2,7 @@ package com.tfowl.gcal
 
 import com.google.api.services.calendar.Calendar
 import com.google.api.services.calendar.model.Event
+import com.sun.org.slf4j.internal.LoggerFactory
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -12,6 +13,10 @@ import java.time.ZoneId
 *
 * */
 private const val EXT_PROP_KEY_SUMMARY = "summary"
+
+class Sync {}
+
+private val LOGGER = LoggerFactory.getLogger(Sync::class.java)
 
 private fun modifySummary(
     originalGenerated: String,
@@ -66,17 +71,17 @@ fun sync(
 
     val (create, update, delete) = computeSyncActions(calendar, currentEvents, targetEvents)
 
-    println("Creating ${create.size} events...")
-    println("Updating ${update.size} events...")
-    println("Deleting ${delete.size} events...")
+    LOGGER.debug("Creating ${create.size} events...")
+    LOGGER.debug("Updating ${update.size} events...")
+    LOGGER.debug("Deleting ${delete.size} events...")
 
     val batch = service.batch()
 
     for (event in delete) {
         calendar.delete(event.id).queue(batch) { _, res ->
             when {
-                res.isOk -> println("Successfully deleted event ${event.pretty()}")
-                else     -> println("Failed to delete event ${event.pretty()}: ${res.error}")
+                res.isOk -> LOGGER.debug("Successfully deleted event ${event.pretty()}")
+                else     -> LOGGER.debug("Failed to delete event ${event.pretty()}: ${res.error}")
             }
         }
     }
@@ -84,8 +89,8 @@ fun sync(
     for ((id, event) in update) {
         calendar.update(id, event).queue(batch) { _, res ->
             when {
-                res.isOk -> println("Successfully updated event ${event.pretty()}")
-                else     -> println("Failed to update event ${event.pretty()}: ${res.error}")
+                res.isOk -> LOGGER.debug("Successfully updated event ${event.pretty()}")
+                else     -> LOGGER.debug("Failed to update event ${event.pretty()}: ${res.error}")
             }
         }
     }
@@ -96,8 +101,8 @@ fun sync(
         fun updateTheExistingEvent(id: String) {
             calendar.update(id, event).queue(batch) { _, res ->
                 when {
-                    res.isOk -> println("Successfully updated the existing event for ${event.pretty()}")
-                    else     -> println("Failed to update the existing event for ${event.pretty()}: ${res.error}")
+                    res.isOk -> LOGGER.debug("Successfully updated the existing event for ${event.pretty()}")
+                    else     -> LOGGER.debug("Failed to update the existing event for ${event.pretty()}: ${res.error}")
                 }
             }
         }
@@ -106,7 +111,7 @@ fun sync(
             calendar.list().setICalUID(event.iCalUID).setShowDeleted(true).queue(batch) { _, res ->
                 when {
                     res.isOk -> updateTheExistingEvent(res.value.items.single().id)
-                    else     -> println("Failed to find the existing event for ${event.pretty()}: ${res.error}")
+                    else     -> LOGGER.debug("Failed to find the existing event for ${event.pretty()}: ${res.error}")
                 }
             }
         }
@@ -114,13 +119,13 @@ fun sync(
         fun createNewEvent() {
             calendar.insert(event).queue(batch) { _, res ->
                 when {
-                    res.isOk -> println("Successfully created event: ${event.pretty()}")
+                    res.isOk -> LOGGER.debug("Successfully created event: ${event.pretty()}")
                     else     -> {
                         if (res.error.code == 409) {
-                            println("Failed to create event ${event.pretty()} because it already exists - will try and update the existing event")
+                            LOGGER.debug("Failed to create event ${event.pretty()} because it already exists - will try and update the existing event")
                             findTheExistingEvent()
                         } else {
-                            println("Failed to create event ${event.pretty()}: ${res.error}")
+                            LOGGER.debug("Failed to create event ${event.pretty()}: ${res.error}")
                         }
                     }
                 }
