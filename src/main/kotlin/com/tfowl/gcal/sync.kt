@@ -1,7 +1,5 @@
 package com.tfowl.gcal
 
-import com.github.michaelbull.result.Err
-import com.github.michaelbull.result.Ok
 import com.google.api.services.calendar.Calendar
 import com.google.api.services.calendar.model.Event
 import java.time.LocalDate
@@ -76,18 +74,18 @@ fun sync(
 
     for (event in delete) {
         calendar.delete(event.id).queue(batch) { _, res ->
-            when (res) {
-                is Ok  -> println("Successfully deleted event ${event.pretty()}")
-                is Err -> println("Failed to delete event ${event.pretty()}: ${res.error}")
+            when {
+                res.isOk -> println("Successfully deleted event ${event.pretty()}")
+                else     -> println("Failed to delete event ${event.pretty()}: ${res.error}")
             }
         }
     }
 
     for ((id, event) in update) {
         calendar.update(id, event).queue(batch) { _, res ->
-            when (res) {
-                is Ok  -> println("Successfully updated event ${event.pretty()}")
-                is Err -> println("Failed to update event ${event.pretty()}: ${res.error}")
+            when {
+                res.isOk -> println("Successfully updated event ${event.pretty()}")
+                else     -> println("Failed to update event ${event.pretty()}: ${res.error}")
             }
         }
     }
@@ -97,27 +95,27 @@ fun sync(
     for (event in create) {
         fun updateTheExistingEvent(id: String) {
             calendar.update(id, event).queue(batch) { _, res ->
-                when (res) {
-                    is Ok  -> println("Successfully updated the existing event for ${event.pretty()}")
-                    is Err -> println("Failed to update the existing event for ${event.pretty()}: ${res.error}")
+                when {
+                    res.isOk -> println("Successfully updated the existing event for ${event.pretty()}")
+                    else     -> println("Failed to update the existing event for ${event.pretty()}: ${res.error}")
                 }
             }
         }
 
         fun findTheExistingEvent() {
             calendar.list().setICalUID(event.iCalUID).setShowDeleted(true).queue(batch) { _, res ->
-                when (res) {
-                    is Ok  -> updateTheExistingEvent(res.value.items.single().id)
-                    is Err -> println("Failed to find the existing event for ${event.pretty()}: ${res.error}")
+                when {
+                    res.isOk -> updateTheExistingEvent(res.value.items.single().id)
+                    else     -> println("Failed to find the existing event for ${event.pretty()}: ${res.error}")
                 }
             }
         }
 
         fun createNewEvent() {
             calendar.insert(event).queue(batch) { _, res ->
-                when (res) {
-                    is Ok  -> println("Successfully created event: ${event.pretty()}")
-                    is Err -> {
+                when {
+                    res.isOk -> println("Successfully created event: ${event.pretty()}")
+                    else     -> {
                         if (res.error.code == 409) {
                             println("Failed to create event ${event.pretty()} because it already exists - will try and update the existing event")
                             findTheExistingEvent()
