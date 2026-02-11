@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.3.0"
 }
 
 group = "com.tfowl.gcal"
@@ -29,6 +29,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "21"
+kotlin {
+    jvmToolchain(25)
 }
